@@ -1,0 +1,166 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 60 30% 98%;
+    --foreground: 120 3% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 120 3% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 120 3% 12%;
+
+    --primary: 120 30% 38%;
+    --primary-foreground: 60 30% 96%;
+
+    --secondary: 30 58% 53%;
+    --secondary-foreground: 60 30% 96%;
+
+    --muted: 120 5% 92%;
+    --muted-foreground: 120 3% 45%;
+
+    --accent: 120 16% 60%;
+    --accent-foreground: 120 3% 12%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 60 30% 96%;
+
+    --border: 120 5% 88%;
+    --input: 120 5% 88%;
+    --ring: 120 30% 38%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 120 5% 98%;
+    --sidebar-foreground: 120 3% 26%;
+    --sidebar-primary: 120 30% 38%;
+    --sidebar-primary-foreground: 60 30% 96%;
+    --sidebar-accent: 120 5% 94%;
+    --sidebar-accent-foreground: 120 3% 12%;
+    --sidebar-border: 120 5% 88%;
+    --sidebar-ring: 120 30% 50%;
+  }
+
+  .dark {
+    --background: 120 10% 8%;
+    --foreground: 60 30% 96%;
+
+    --card: 120 10% 12%;
+    --card-foreground: 60 30% 96%;
+
+    --popover: 120 10% 12%;
+    --popover-foreground: 60 30% 96%;
+
+    --primary: 120 20% 50%;
+    --primary-foreground: 60 30% 98%;
+
+    --secondary: 30 50% 40%;
+    --secondary-foreground: 60 30% 96%;
+
+    --muted: 120 5% 20%;
+    --muted-foreground: 120 5% 65%;
+
+    --accent: 120 10% 25%;
+    --accent-foreground: 60 30% 96%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 60 30% 96%;
+
+    --border: 120 5% 22%;
+    --input: 120 5% 22%;
+    --ring: 120 30% 50%;
+    
+    --sidebar-background: 120 10% 12%;
+    --sidebar-foreground: 60 10% 90%;
+    --sidebar-primary: 120 20% 50%;
+    --sidebar-primary-foreground: 60 30% 98%;
+    --sidebar-accent: 120 5% 16%;
+    --sidebar-accent-foreground: 60 10% 90%;
+    --sidebar-border: 120 5% 22%;
+    --sidebar-ring: 120 30% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-poppins;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-playfair;
+  }
+
+  /* Styling for plants */
+  .plant-card {
+    @apply relative overflow-hidden rounded-lg bg-white shadow-md transition-all duration-300 hover:shadow-xl;
+  }
+
+  .plant-card:hover .plant-card-content {
+    @apply translate-y-0 opacity-100;
+  }
+
+  .plant-card-content {
+    @apply absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 text-white transition-all duration-300 translate-y-4 opacity-90;
+  }
+
+  /* 3D viewer styles */
+  .canvas-container {
+    @apply relative w-full h-full min-h-[400px] bg-herbal-cream rounded-lg overflow-hidden border border-herbal-sage/50;
+  }
+
+  .canvas-container canvas {
+    @apply outline-none;
+  }
+
+  /* AYUSH category pills */
+  .ayush-pill {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium mr-2 mb-2;
+  }
+
+  .ayush-pill.ayurveda {
+    @apply bg-herbal-green-light/20 text-herbal-green-dark;
+  }
+
+  .ayush-pill.yoga {
+    @apply bg-blue-100 text-blue-800;
+  }
+
+  .ayush-pill.unani {
+    @apply bg-purple-100 text-purple-800;
+  }
+
+  .ayush-pill.siddha {
+    @apply bg-amber-100 text-amber-800;
+  }
+
+  .ayush-pill.homeopathy {
+    @apply bg-teal-100 text-teal-800;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-muted;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-herbal-sage rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-herbal-green-dark;
+}
