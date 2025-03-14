@@ -77,8 +77,8 @@ const Contact = () => {
                     <div>
                       <h3 className="font-medium text-lg">Email</h3>
                       <p className="text-muted-foreground">
-                        info@virtualherbalgarden.org<br />
-                        support@virtualherbalgarden.org
+                        samarthdadniya7@gmail.com<br />
+                        brindavaghasiya@gmail.com
                       </p>
                     </div>
                   </div>
@@ -90,8 +90,8 @@ const Contact = () => {
                     <div>
                       <h3 className="font-medium text-lg">Phone</h3>
                       <p className="text-muted-foreground">
-                        +91-11-2462 2222<br />
-                        +91-11-2462 2233
+                        +91-63510-14098<br />
+                        +91-97232-75264
                       </p>
                     </div>
                   </div>

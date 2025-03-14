@@ -7,7 +7,7 @@ import PlantViewer3D from "@/components/PlantViewer3D";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Info, Leaf, Rotate3d } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 
 // Sample plant data for the virtual garden
 const gardenPlants = [
@@ -35,26 +35,30 @@ const gardenPlants = [
 
 const Garden = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [selectedPlant, setSelectedPlant] = useState(gardenPlants[0]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
-    // Check if user is logged in - this would be replaced with your actual auth check
+    // Check if user is logged in
     const checkAuth = () => {
       const token = localStorage.getItem("auth_token");
       setIsAuthenticated(!!token);
+      setIsLoading(false);
       
       if (!token) {
         toast({
           title: "Authentication Required",
-          description: "Please log in to access the full Garden experience.",
+          description: "Please log in to access the Virtual Garden.",
           variant: "destructive"
         });
+        navigate("/login", { state: { from: "/garden" } });
       }
     };
     
     checkAuth();
-  }, []);
+  }, [navigate, toast]);
 
   const handlePlantSelect = (plant) => {
     setSelectedPlant(plant);
@@ -63,6 +67,49 @@ const Garden = () => {
       description: `You are now viewing ${plant.name} (${plant.scientificName})`,
     });
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-grow flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-pulse">
+              <Leaf className="h-12 w-12 text-herbal-green mx-auto mb-4" />
+              <p className="text-muted-foreground">Loading the garden...</p>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-grow flex items-center justify-center">
+          <div className="text-center p-8 max-w-md mx-auto">
+            <Leaf className="h-16 w-16 text-herbal-green mx-auto mb-6" />
+            <h2 className="text-2xl font-bold mb-4">Access Restricted</h2>
+            <p className="mb-6 text-muted-foreground">
+              You need to be logged in to access the Virtual AYUSH Garden and explore our collection of medicinal plants in 3D.
+            </p>
+            <div className="flex gap-4 justify-center">
+              <Button variant="outline" onClick={() => navigate(-1)}>
+                Go Back
+              </Button>
+              <Button onClick={() => navigate("/login", { state: { from: "/garden" } })}>
+                Log In
+              </Button>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -104,21 +151,6 @@ const Garden = () => {
                     </div>
                   ))}
                 </div>
-                
-                {!isAuthenticated && (
-                  <div className="mt-6 p-4 bg-amber-50 rounded border border-amber-200 text-sm">
-                    <p className="font-medium text-amber-800 mb-2">Limited Garden Access</p>
-                    <p className="text-amber-700 mb-3">Log in to access the full virtual garden with all plants and features.</p>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      onClick={() => navigate("/login")}
-                      className="w-full"
-                    >
-                      Log In
-                    </Button>
-                  </div>
-                )}
               </div>
               
               {/* 3D Viewer and Plant Info */}

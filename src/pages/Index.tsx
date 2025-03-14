@@ -4,6 +4,7 @@ import HeroSection from "@/components/HeroSection";
 import FeaturedPlants from "@/components/FeaturedPlants";
 import AyushSystems from "@/components/AyushSystems";
 import Footer from "@/components/Footer";
+import CTA from "@/components/CTA";
 
 const Index = () => {
   return (
@@ -13,6 +14,7 @@ const Index = () => {
         <HeroSection />
         <FeaturedPlants />
         <AyushSystems />
+        {/* <CTA /> */}
       </main>
       <Footer />
     </div>
