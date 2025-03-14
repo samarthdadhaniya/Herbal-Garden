@@ -16,17 +16,13 @@ const Footer = () => {
               An interactive virtual garden showcasing medicinal plants from the ancient AYUSH systems of medicine.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+              <a href="https://github.com/samarthdadhaniya/" className="text-muted-foreground hover:text-primary transition-colors">
                 <Github className="h-5 w-5" />
                 <span className="sr-only">GitHub</span>
               </a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+              <a href="mailto:samarthdadhaniya7@gmail.com" className="text-muted-foreground hover:text-primary transition-colors">
                 <Mail className="h-5 w-5" />
                 <span className="sr-only">Email</span>
-              </a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                <Instagram className="h-5 w-5" />
-                <span className="sr-only">Instagram</span>
               </a>
             </div>
           </div>
@@ -107,7 +103,7 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/bookmarks" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                <Link to="/profile" className="text-muted-foreground hover:text-primary transition-colors text-sm">
                   Bookmarked Plants
                 </Link>
               </li>

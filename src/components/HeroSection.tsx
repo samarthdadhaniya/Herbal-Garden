@@ -6,8 +6,7 @@ import { Link } from "react-router-dom";
 const HeroSection = () => {
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-herbal-cream to-white py-20 md:py-32">
-      <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1533038590840-1f704af5abb0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80')] bg-cover bg-center opacity-[0.03]"></div>
-      
+      <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1470058869958-2a77ade41c02?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')] bg-cover bg-center opacity-[0.03]"></div>
       <div className="container relative z-10">
         <div className="flex flex-col items-center text-center">
           <div className="inline-flex items-center justify-center p-2 bg-herbal-green-light/10 rounded-full mb-4">
@@ -31,7 +30,7 @@ const HeroSection = () => {
               </Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link to="/plants">Browse Plant Database</Link>
+              <Link to="/plants">Browse Plant</Link>
             </Button>
           </div>
         </div>
