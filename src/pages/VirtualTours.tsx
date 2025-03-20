@@ -1,94 +1,48 @@
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Clock, Leaf, Route } from "lucide-react";
-
-// Sample tour data
-const toursList = [
-  {
-    id: 1,
-    name: "Ayurvedic Herbs Tour",
-    description: "Explore the fundamental herbs used in Ayurvedic medicine and their healing properties.",
-    thumbnail: "https://images.unsplash.com/photo-1615485291926-85b21f3cc1e9?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-    duration: "30 min",
-    plantCount: 8,
-    featured: true,
-    category: "Ayurveda"
-  },
-  {
-    id: 2,
-    name: "Stress Relief Plants",
-    description: "Discover medicinal plants known for their ability to alleviate stress and anxiety.",
-    thumbnail: "https://images.unsplash.com/photo-1471086569966-db3eebc25a59?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-    duration: "20 min",
-    plantCount: 5,
-    featured: true,
-    category: "Wellness"
-  },
-  {
-    id: 3,
-    name: "Digestive Health Plants",
-    description: "Learn about plants that improve digestion and support gut health according to traditional medicine.",
-    thumbnail: "https://images.unsplash.com/photo-1511993226957-cd166aba52d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=1674&q=80",
-    duration: "25 min",
-    plantCount: 6,
-    featured: false,
-    category: "Health"
-  },
-  {
-    id: 4,
-    name: "Medicinal Flowers Tour",
-    description: "Explore the healing properties of medicinal flowers from various traditional systems.",
-    thumbnail: "https://images.unsplash.com/photo-1487700160041-babef9c3cb55?ixlib=rb-4.0.3&auto=format&fit=crop&w=2052&q=80",
-    duration: "15 min",
-    plantCount: 4,
-    featured: false,
-    category: "Botanical"
-  },
-  {
-    id: 5,
-    name: "Unani Medicine Exploration",
-    description: "Discover plants used in the Unani system of medicine and their traditional applications.",
-    thumbnail: "https://images.unsplash.com/photo-1466692476655-ab0c26c69cbf?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-    duration: "35 min",
-    plantCount: 7,
-    featured: false,
-    category: "Unani"
-  },
-  {
-    id: 6,
-    name: "Homeopathic Plants Guide",
-    description: "Learn about plants that form the basis of homeopathic remedies and their principles.",
-    thumbnail: "https://images.unsplash.com/photo-1523867574998-1a336b6ded04?ixlib=rb-4.0.3&auto=format&fit=crop&w=1760&q=80",
-    duration: "25 min",
-    plantCount: 5,
-    featured: false,
-    category: "Homeopathy"
-  }
-];
-
-// Extract unique categories
-const categories = ["All", ...new Set(toursList.map(tour => tour.category))];
+import { supabase } from "@/integrations/supabase/client";
 
 const VirtualTours = () => {
+  const [tours, setTours] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
-  
+
+  useEffect(() => {
+    const fetchTours = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("tours")
+          .select("id, name, description, duration, plant_count, image_url");
+
+        if (error) throw error;
+        if (data) {
+          setTours(data);
+        }
+      } catch (error) {
+        console.error("Error fetching tours:", error.message);
+      }
+    };
+
+    fetchTours();
+  }, []);
+
+  const categories = ["All", ...new Set(tours.map(tour => tour.category))];
+
   // Filter tours based on selected category
-  const filteredTours = selectedCategory === "All" 
-    ? toursList 
-    : toursList.filter(tour => tour.category === selectedCategory);
-  
+  const filteredTours = selectedCategory === "All"
+    ? tours
+    : tours.filter(tour => tour.category === selectedCategory);
+
   // Get featured tours
-  const featuredTours = toursList.filter(tour => tour.featured);
+  const featuredTours = tours.filter(tour => tour.featured);
 
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow">
-        {/* Hero Section */}
         <section className="relative py-16 bg-herbal-cream overflow-hidden">
           <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1533038590840-1f704af5abb0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80')] bg-cover bg-center opacity-[0.03]"></div>
           <div className="container relative">
@@ -106,18 +60,17 @@ const VirtualTours = () => {
             </div>
           </div>
         </section>
-        
+
         {/* Featured Tours */}
         {featuredTours.length > 0 && (
           <section className="py-16">
             <div className="container">
               <h2 className="text-3xl font-bold mb-8">Featured Tours</h2>
-              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {featuredTours.map((tour) => (
                   <div key={tour.id} className="group relative h-80 overflow-hidden rounded-xl">
                     <img 
-                      src={tour.thumbnail} 
+                      src={tour.image_url} 
                       alt={tour.name} 
                       className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
@@ -147,13 +100,12 @@ const VirtualTours = () => {
             </div>
           </section>
         )}
-        
+
         {/* All Tours */}
         <section className="py-16 bg-muted/30">
           <div className="container">
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
               <h2 className="text-3xl font-bold">Explore All Tours</h2>
-              
               <div className="flex flex-wrap gap-2">
                 {categories.map((category) => (
                   <Button
@@ -173,45 +125,49 @@ const VirtualTours = () => {
                 ))}
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredTours.map((tour) => (
-                <div 
-                  key={tour.id} 
-                  className="bg-white rounded-lg shadow-sm border border-herbal-sage/20 overflow-hidden hover:shadow-md transition-shadow"
-                >
-                  <div className="h-48 overflow-hidden">
-                    <img 
-                      src={tour.thumbnail} 
-                      alt={tour.name} 
-                      className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                    />
-                  </div>
-                  <div className="p-5">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="ayush-pill ayurveda">
-                        {tour.category}
-                      </span>
-                      <span className="inline-flex items-center text-xs text-muted-foreground">
-                        <Clock className="h-3 w-3 mr-1" />
-                        {tour.duration}
-                      </span>
+              {filteredTours.length > 0 ? (
+                filteredTours.map((tour) => (
+                  <div 
+                    key={tour.id} 
+                    className="bg-white rounded-lg shadow-sm border border-herbal-sage/20 overflow-hidden hover:shadow-md transition-shadow"
+                  >
+                    <div className="h-48 overflow-hidden">
+                      <img 
+                        src={tour.image_url} 
+                        alt={tour.name} 
+                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                      />
                     </div>
-                    <h3 className="text-xl font-semibold mb-2">{tour.name}</h3>
-                    <p className="text-muted-foreground mb-4 line-clamp-2">{tour.description}</p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">
-                        {tour.plantCount} plants
-                      </span>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link to={`/tours/${tour.id}`}>
-                          View Tour
-                        </Link>
-                      </Button>
+                    <div className="p-5">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="ayush-pill ayurveda">
+                          {tour.category}
+                        </span>
+                        <span className="inline-flex items-center text-xs text-muted-foreground">
+                          <Clock className="h-3 w-3 mr-1" />
+                          {tour.duration}
+                        </span>
+                      </div>
+                      <h3 className="text-xl font-semibold mb-2">{tour.name}</h3>
+                      <p className="text-muted-foreground mb-4 line-clamp-2">{tour.description}</p>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-muted-foreground">
+                          {tour.plant_count} plants
+                        </span>
+                        <Button variant="outline" size="sm" asChild>
+                          <Link to={`/tours/${tour.id}`}>
+                            View Tour
+                          </Link>
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-center text-gray-500">No tours available.</p>
+              )}
             </div>
           </div>
         </section>
