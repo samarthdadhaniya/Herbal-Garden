@@ -929,185 +929,205 @@ const Admin = () => {
                     </TabsContent>
 
                     {/* Tours Tab */}
-                    <TabsContent value="tours">
-                      <div className="flex justify-end mb-4">
-                        <Dialog open={isAddTourDialogOpen} onOpenChange={setIsAddTourDialogOpen}>
-                          <DialogTrigger asChild>
-                            <Button 
-                              onClick={() => {
-                                tourForm.reset();
-                                setActiveTourId(null);
-                              }}
-                              className="bg-herbal-green-dark hover:bg-herbal-green-dark/80"
-                            >
-                              <Plus className="mr-2 h-4 w-4" />
-                              Add New Tour
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="sm:max-w-[600px]">
-                            <DialogHeader>
-                              <DialogTitle>
-                                {activeTourId ? "Edit Tour" : "Add New Tour"}
-                              </DialogTitle>
-                              <DialogDescription>
-                                Fill in the details for the virtual garden tour. All fields marked with * are required.
-                              </DialogDescription>
-                            </DialogHeader>
+<TabsContent value="tours">
+  <div className="flex justify-end mb-4">
+    <Dialog open={isAddTourDialogOpen} onOpenChange={setIsAddTourDialogOpen}>
+      <DialogTrigger asChild>
+        <Button
+          onClick={() => {
+            tourForm.reset();
+            setActiveTourId(null);
+          }}
+          className="bg-herbal-green-dark hover:bg-herbal-green-dark/80"
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Add New Tour
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>
+            {activeTourId ? "Edit Tour" : "Add New Tour"}
+          </DialogTitle>
+          <DialogDescription>
+            Fill in the details for the virtual garden tour. All fields marked with * are required.
+          </DialogDescription>
+        </DialogHeader>
 
-                            <Form {...tourForm}>
-                              <form onSubmit={tourForm.handleSubmit(onSubmitTour)} className="space-y-4 py-4">
-                                <FormField
-                                  control={tourForm.control}
-                                  name="name"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>Name *</FormLabel>
-                                      <FormControl>
-                                        <Input placeholder="e.g. Ayurvedic Plants Tour" {...field} />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                                
-                                <FormField
-                                  control={tourForm.control}
-                                  name="description"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>
-                                        <span className="text-muted-foreground">Description</span>
-                                      </FormLabel>
-                                      <FormControl>
-                                        <Textarea 
-                                          placeholder="Describe the tour..."
-                                          className="min-h-[100px]"
-                                          {...field} 
-                                        />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
+        <Form {...tourForm}>
+          <form onSubmit={tourForm.handleSubmit(onSubmitTour)} className="space-y-4 py-4">
+            <FormField
+              control={tourForm.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. Ayurvedic Plants Tour" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-                                <FormField
-                                  control={tourForm.control}
-                                  name="duration"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>
-                                        <span className="text-muted-foreground">Duration</span>
-                                      </FormLabel>
-                                      <FormControl>
-                                        <Input 
-                                          placeholder="e.g. 2 hours" 
-                                          className="min-h-[40px]"
-                                          {...field} 
-                                        />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
+            <FormField
+              control={tourForm.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    <span className="text-muted-foreground">Description</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Describe the tour..."
+                      className="min-h-[100px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-                                <DialogFooter>
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => setIsAddTourDialogOpen(false)}
-                                  >
-                                    Cancel
-                                  </Button>
-                                  <Button 
-                                    type="submit"
-                                    className="bg-herbal-green-dark hover:bg-herbal-green/80"
-                                  >
-                                    {tourForm.formState.isSubmitting ? (
-                                      <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Saving...
-                                      </>
-                                    ) : (
-                                      activeTourId ? "Update Tour" : "Add Tour"
-                                    )}
-                                  </Button>
-                                </DialogFooter>
-                              </form>
-                            </Form>
-                          </DialogContent>
-                        </Dialog>
-                      </div>
-                      
-                      {filteredTours.length > 0 ? (
-                        <div className="border rounded-md">
-                          <Table>
-                            <TableHeader>
-                              <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead className="hidden md:table-cell">Description</TableHead>
-                                <TableHead>Duration</TableHead>
-                                <TableHead className="hidden md:table-cell">Added On</TableHead>
-                                <TableHead className="w-[80px]">Actions</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {filteredTours.map((tour) => (
-                                <TableRow key={tour.id}>
-                                  <TableCell className="font-medium">{tour.name}</TableCell>
-                                  <TableCell className="italic hidden md:table-cell">
-                                    {tour.description}
-                                  </TableCell>
-                                  <TableCell>
-                                    {tour.duration}
-                                  </TableCell>
-                                  <TableCell className="hidden md:table-cell">
-                                    {formatDate(tour.created_at)}
-                                  </TableCell>
-                                  <TableCell>
-                                    <DropdownMenu>
-                                      <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon">
-                                          <MoreVertical className="h-4 w-4" />
-                                        </Button>
-                                      </DropdownMenuTrigger>
-                                      <DropdownMenuContent align="end">
-                                        <DropdownMenuItem
-                                          onClick={() => handleEditTour(tour)}
-                                        >
-                                          <Edit className="mr-2 h-4 w-4" />
-                                          Edit
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                          onClick={() => openConfirmDelete(tour.id, 'tour')}
-                                          className="text-red-600"
-                                        >
-                                          <Trash2 className="mr-2 h-4 w-4" />
-                                          Delete
-                                        </DropdownMenuItem>
-                                      </DropdownMenuContent>
-                                    </DropdownMenu>
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        </div>
-                      ) : (
-                        <div className="text-center p-8 border rounded-md bg-muted/10">
-                          <Leaf className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                          <p className="text-muted-foreground mb-2">
-                            No tours found matching your search.
-                          </p>
-                          <Button 
-                            variant="outline"
-                            onClick={() => setSearchTerm("")}
-                            className="mt-2"
-                          >
-                            Clear search
-                          </Button>
-                        </div>
-                      )}
-                    </TabsContent>
+            <FormField
+              control={tourForm.control}
+              name="duration"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    <span className="text-muted-foreground">Duration</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="e.g. 2 hours"
+                      className="min-h-[40px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={tourForm.control}
+              name="imageUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    <span className="text-muted-foreground">Image URL</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter image URL"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsAddTourDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                className="bg-herbal-green-dark hover:bg-herbal-green/80"
+              >
+                {tourForm.formState.isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  activeTourId ? "Update Tour" : "Add Tour"
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  </div>
+
+  {filteredTours.length > 0 ? (
+    <div className="border rounded-md">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Name</TableHead>
+            <TableHead className="hidden md:table-cell">Description</TableHead>
+            <TableHead>Duration</TableHead>
+            <TableHead className="hidden md:table-cell">Added On</TableHead>
+            <TableHead className="w-[80px]">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {filteredTours.map((tour) => (
+            <TableRow key={tour.id}>
+              <TableCell className="font-medium">{tour.name}</TableCell>
+              <TableCell className="italic hidden md:table-cell">
+                {tour.description}
+              </TableCell>
+              <TableCell>
+                {tour.duration}
+              </TableCell>
+              <TableCell className="hidden md:table-cell">
+                {formatDate(tour.created_at)}
+              </TableCell>
+              <TableCell>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={() => handleEditTour(tour)}
+                    >
+                      <Edit className="mr-2 h-4 w-4" />
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => openConfirmDelete(tour.id, 'tour')}
+                      className="text-red-600"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  ) : (
+    <div className="text-center p-8 border rounded-md bg-muted/10">
+      <Leaf className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+      <p className="text-muted-foreground mb-2">
+        No tours found matching your search.
+      </p>
+      <Button
+        variant="outline"
+        onClick={() => setSearchTerm("")}
+        className="mt-2"
+      >
+        Clear search
+      </Button>
+    </div>
+  )}
+</TabsContent>
+
 
                     {/* Users Tab */}
                     <TabsContent value="users">

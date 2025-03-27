@@ -317,16 +317,6 @@ const PlantDetails = () => {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={handleFavorite}
-                      className={isFavorite ? "text-red-500" : ""}
-                    >
-                      <Heart className="h-5 w-5" fill={isFavorite ? "currentColor" : "none"} />
-                      <span className="sr-only">{isFavorite ? "Remove from favorites" : "Add to favorites"}</span>
-                    </Button>
-                    
-                    <Button
-                      variant="ghost"
-                      size="icon"
                       onClick={handleBookmark}
                       className={isBookmarked ? "text-primary" : ""}
                       disabled={isCheckingWatchlist}

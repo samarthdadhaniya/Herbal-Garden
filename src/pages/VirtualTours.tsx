@@ -3,12 +3,14 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Clock, Leaf, Route } from "lucide-react";
+import { ArrowRight, Clock, Leaf, Route, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const VirtualTours = () => {
   const [tours, setTours] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedTour, setSelectedTour] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchTours = async () => {
@@ -38,6 +40,16 @@ const VirtualTours = () => {
 
   // Get featured tours
   const featuredTours = tours.filter(tour => tour.featured);
+
+  const openModal = (tour) => {
+    setSelectedTour(tour);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setSelectedTour(null);
+    setIsModalOpen(false);
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -69,9 +81,9 @@ const VirtualTours = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {featuredTours.map((tour) => (
                   <div key={tour.id} className="group relative h-80 overflow-hidden rounded-xl">
-                    <img 
-                      src={tour.image_url} 
-                      alt={tour.name} 
+                    <img
+                      src={tour.image_url}
+                      alt={tour.name}
                       className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
@@ -129,14 +141,14 @@ const VirtualTours = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredTours.length > 0 ? (
                 filteredTours.map((tour) => (
-                  <div 
-                    key={tour.id} 
+                  <div
+                    key={tour.id}
                     className="bg-white rounded-lg shadow-sm border border-herbal-sage/20 overflow-hidden hover:shadow-md transition-shadow"
                   >
                     <div className="h-48 overflow-hidden">
-                      <img 
-                        src={tour.image_url} 
-                        alt={tour.name} 
+                      <img
+                        src={tour.image_url}
+                        alt={tour.name}
                         className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                       />
                     </div>
@@ -156,10 +168,8 @@ const VirtualTours = () => {
                         <span className="text-sm text-muted-foreground">
                           {tour.plant_count} plants
                         </span>
-                        <Button variant="outline" size="sm" asChild>
-                          <Link to={`/tours/${tour.id}`}>
-                            View Tour
-                          </Link>
+                        <Button variant="outline" size="sm" onClick={() => openModal(tour)}>
+                          View Tour
                         </Button>
                       </div>
                     </div>
@@ -173,6 +183,36 @@ const VirtualTours = () => {
         </section>
       </main>
       <Footer />
+
+      {/* Modal */}
+      {isModalOpen && selectedTour && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <button className="absolute top-2 right-2" onClick={closeModal}>
+              <X className="h-5 w-5" />
+            </button>
+            <img
+              src={selectedTour.image_url}
+              alt={selectedTour.name}
+              className="w-full h-48 object-cover rounded-md mb-4"
+            />
+            <h3 className="text-xl font-semibold mb-2">{selectedTour.name}</h3>
+            <p className="text-muted-foreground mb-4">{selectedTour.description}</p>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="ayush-pill ayurveda">
+                {selectedTour.category}
+              </span>
+              <span className="inline-flex items-center text-xs text-muted-foreground">
+                <Clock className="h-3 w-3 mr-1" />
+                {selectedTour.duration}
+              </span>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {selectedTour.plant_count} plants
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
