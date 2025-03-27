@@ -6,6 +6,58 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Clock, Leaf, Route, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
+const RECOMMENDED_PLANTS = {
+  "Immunity Boosting": [
+    {
+      id: 1,
+      name: "Ashwagandha",
+      scientific_name: "Withania somnifera",
+      image_url: "https://example.com/ashwagandha.jpg",
+      benefits: "Powerful adaptogen that helps strengthen the immune system and reduce stress."
+    },
+    {
+      id: 2,
+      name: "Tulsi (Holy Basil)",
+      scientific_name: "Ocimum sanctum",
+      image_url: "https://example.com/tulsi.jpg",
+      benefits: "Supports respiratory health and boosts natural immunity."
+    },
+    {
+      id: 3,
+      name: "Guduchi",
+      scientific_name: "Tinospora cordifolia",
+      image_url: "https://example.com/guduchi.jpg",
+      benefits: "Known for its immunomodulatory properties and overall health support."
+    }
+  ],
+  "Digestive Health": [
+    {
+      id: 4,
+      name: "Triphala",
+      scientific_name: "Combination of three fruits",
+      image_url: "https://example.com/triphala.jpg",
+      benefits: "Supports digestive health, detoxification, and gut wellness."
+    },
+    {
+      id: 5,
+      name: "Ginger",
+      scientific_name: "Zingiber officinale",
+      image_url: "https://example.com/ginger.jpg",
+      benefits: "Aids digestion, reduces inflammation, and supports gut health."
+    }
+  ],
+  // Add more categories and recommended plants as needed
+  "Default": [
+    {
+      id: 6,
+      name: "Neem",
+      scientific_name: "Azadirachta indica",
+      image_url: "https://example.com/neem.jpg",
+      benefits: "Supports overall health with its purifying and cleansing properties."
+    }
+  ]
+};
+
 const VirtualTours = () => {
   const [tours, setTours] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -185,34 +237,108 @@ const VirtualTours = () => {
       <Footer />
 
       {/* Modal */}
-      {isModalOpen && selectedTour && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <button className="absolute top-2 right-2" onClick={closeModal}>
-              <X className="h-5 w-5" />
-            </button>
-            <img
-              src={selectedTour.image_url}
-              alt={selectedTour.name}
-              className="w-full h-48 object-cover rounded-md mb-4"
-            />
-            <h3 className="text-xl font-semibold mb-2">{selectedTour.name}</h3>
-            <p className="text-muted-foreground mb-4">{selectedTour.description}</p>
-            <div className="flex items-center gap-2 mb-2">
+{isModalOpen && selectedTour && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="bg-white rounded-lg p-8 max-w-4xl w-full relative overflow-y-auto max-h-[90vh] shadow-2xl">
+      <button 
+        className="absolute top-4 right-4 z-10 hover:bg-gray-100 rounded-full p-2 transition-colors" 
+        onClick={closeModal}
+      >
+        <X className="h-6 w-6 text-gray-600 hover:text-gray-900" />
+      </button>
+      
+      <div className="space-y-6">
+        {/* Tour Image and Header */}
+        <div className="relative h-64 overflow-hidden rounded-xl">
+          <img
+            src={selectedTour.image_url}
+            alt={selectedTour.name}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+          <div className="absolute bottom-0 left-0 p-6 text-white">
+            <h3 className="text-3xl font-bold mb-2">{selectedTour.name}</h3>
+            <div className="flex items-center gap-2">
               <span className="ayush-pill ayurveda">
                 {selectedTour.category}
               </span>
-              <span className="inline-flex items-center text-xs text-muted-foreground">
+              <span className="inline-flex items-center text-xs">
                 <Clock className="h-3 w-3 mr-1" />
                 {selectedTour.duration}
               </span>
             </div>
-            <p className="text-sm text-muted-foreground">
-              {selectedTour.plant_count} plants
-            </p>
           </div>
         </div>
-      )}
+
+        {/* Full-Width Description */}
+        <div className="bg-muted/10 p-6 rounded-lg">
+          <h4 className="text-xl font-semibold mb-4">Tour Description</h4>
+          <p className="text-muted-foreground leading-relaxed">
+            {selectedTour.description}
+          </p>
+        </div>
+
+        {/* Recommended Plants Section */}
+        <div>
+          <h4 className="text-2xl font-semibold mb-6 flex items-center">
+            <Leaf className="mr-3 h-6 w-6 text-herbal-green" />
+            Recommended Herbal Remedies
+          </h4>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {RECOMMENDED_PLANTS[selectedTour.category]?.map((plant) => (
+              <div 
+                key={plant.id} 
+                className="bg-white border border-herbal-sage/20 rounded-lg overflow-hidden hover:shadow-md transition-all group"
+              >
+                <div className="h-48 overflow-hidden">
+                  <img 
+                    src={plant.image_url} 
+                    alt={plant.name} 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                  />
+                </div>
+                <div className="p-4">
+                  <h5 className="text-lg font-semibold mb-2">{plant.name}</h5>
+                  <p className="text-xs text-muted-foreground mb-3 italic">
+                    {plant.scientific_name}
+                  </p>
+                  <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                    {plant.benefits}
+                  </p>
+                  <Button 
+                    asChild 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                  >
+                    <Link to={`/plants/${plant.id}`}>
+                      Learn More
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex justify-end space-x-4 mt-6">
+          <Button variant="outline" onClick={closeModal}>
+            Close
+          </Button>
+          <Button asChild>
+            <Link to={`/tours/${selectedTour.id}`}>
+              Start Tour
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 };
