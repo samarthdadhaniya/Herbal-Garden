@@ -52,7 +52,6 @@ const Navbar = () => {
   // Items for the "Others" dropdown
   const otherNavLinks = [
     { name: "Virtual Tours", path: "/tours" },
-    { name: "About AYUSH", path: "/about" },
     { name: "Contact", path: "/contact" },
   ];
 
