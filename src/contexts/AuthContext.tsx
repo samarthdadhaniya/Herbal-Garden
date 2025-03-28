@@ -11,6 +11,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any, data: any }>;
   signOut: () => Promise<void>;
+  sendPasswordResetEmail: (email: string) => Promise<{ error: any }>;
   getUserProfile: () => Promise<any>;
 }
 
@@ -40,7 +41,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.log(`Auth state changed: ${event}`);
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
         checkUserRole(session.user.id);
       } else {
@@ -60,10 +61,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .select('role')
         .eq('id', userId)
         .maybeSingle();
-      
+
       if (error) {
         console.error('Error fetching user role:', error);
-        setIsAdmin(true);
+        setIsAdmin(false);
       } else {
         console.log("User role data:", data);
         setIsAdmin(data?.role === 'admin');
@@ -84,12 +85,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       if (error) return { error };
-      
+
       // After successful login, check if user is admin
       if (data?.user) {
         await checkUserRole(data.user.id);
       }
-      
+
       return { error: null };
     } catch (error) {
       console.error('Error signing in:', error);
@@ -110,12 +111,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       if (error) return { error, data: null };
-      
+
       toast({
         title: "Account created successfully",
         description: "Please check your email to verify your account.",
       });
-      
+
       return { error: null, data };
     } catch (error) {
       console.error('Error signing up:', error);
@@ -139,21 +140,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const sendPasswordResetEmail = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/update-password`,
+      });
+      return { error };
+    } catch (error) {
+      console.error('Error sending reset email:', error);
+      return { error };
+    }
+  };
+
   const getUserProfile = async () => {
     if (!user) return null;
-    
+
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single();
-        
+
       if (error) {
         console.error('Error fetching profile:', error);
         return null;
       }
-      
+
       return data;
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -170,6 +183,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       signIn,
       signUp,
       signOut,
+      sendPasswordResetEmail,
       getUserProfile
     }}>
       {children}
