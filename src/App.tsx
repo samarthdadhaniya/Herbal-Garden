@@ -19,6 +19,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
 import Chatbot from "@/components/Chatbot";
+import UpdatePassword from "./pages/UpdatePassword";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,7 @@ const App = () => (
             } />
             <Route path="/tours" element={<VirtualTours />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/update-password" element={<UpdatePassword />} />
             <Route path="/register" element={<Register />} />
             <Route path="/admin" element={
               <AdminRoute>

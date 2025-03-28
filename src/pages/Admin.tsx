@@ -58,25 +58,46 @@ import {
   Route,
   AlertCircle,
   Loader2,
+  ChevronsUpDown,
+  Check,
+  X,
 } from "lucide-react";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Badge } from "@/components/ui/badge";
 
 // Plant form schema
 const plantFormSchema = z.object({
-  name: z.string().min(2, { message: "Plant name must be at least 2 characters." }),
-  scientificName: z.string().min(2, { message: "Scientific name is required." }),
+  name: z
+    .string()
+    .min(2, { message: "Plant name must be at least 2 characters." }),
+  scientificName: z
+    .string()
+    .min(2, { message: "Scientific name is required." }),
   system: z.string().min(1, { message: "AYUSH system is required." }),
   category: z.string().optional(),
   description: z.string().optional(),
@@ -91,8 +112,14 @@ const plantFormSchema = z.object({
 
 // Tour form schema
 const tourFormSchema = z.object({
-  name: z.string().min(2, { message: "Tour name must be at least 2 characters." }),
-  description: z.string().min(10, { message: "Description must be at least 10 characters." }),
+  name: z
+    .string()
+    .min(2, { message: "Tour name must be at least 2 characters." }),
+  plants: z
+    .array(z.string()),
+  description: z
+    .string()
+    .min(10, { message: "Description must be at least 10 characters." }),
   duration: z.string().min(1, { message: "Duration is required." }),
   imageUrl: z.string().optional(),
 });
@@ -112,7 +139,10 @@ const Admin = () => {
   const [isAddPlantDialogOpen, setIsAddPlantDialogOpen] = useState(true);
   const [isAddTourDialogOpen, setIsAddTourDialogOpen] = useState(false);
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<{ id: string, type: 'plant' | 'tour' } | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<{
+    id: string;
+    type: "plant" | "tour";
+  } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState({
     plantCount: 0,
@@ -144,6 +174,7 @@ const Admin = () => {
     resolver: zodResolver(tourFormSchema),
     defaultValues: {
       name: "",
+      plants: [],
       description: "",
       duration: "",
       imageUrl: "",
@@ -156,29 +187,29 @@ const Admin = () => {
     try {
       // Fetch plants
       const { data: plantsData, error: plantsError } = await supabase
-        .from('plants')
-        .select('*')
-        .order('name');
-      
+        .from("plants")
+        .select("*")
+        .order("name");
+
       if (plantsError) throw plantsError;
       setPlants(plantsData || []);
-      
+
       // Fetch tours
       const { data: toursData, error: toursError } = await supabase
-        .from('tours')
-        .select('*')
-        .order('name');
-      
+        .from("tours")
+        .select("*")
+        .order("name");
+
       if (toursError) throw toursError;
       setTours(toursData || []);
-      
+
       // Fetch users (for admin only)
       if (isAdmin) {
         const { data: usersData, error: usersError } = await supabase
-          .from('profiles')
-          .select('*')
-          .order('created_at', { ascending: false });
-        
+          .from("profiles")
+          .select("*")
+          .order("created_at", { ascending: false });
+
         if (usersError) throw usersError;
         setUsers(usersData || []);
       }
@@ -189,13 +220,12 @@ const Admin = () => {
         tourCount: toursData?.length || 0,
         userCount: users.length || 0,
       });
-      
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error("Error fetching data:", error);
       toast({
         title: "Error fetching data",
         description: "There was a problem loading the admin dashboard data.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -264,7 +294,7 @@ const Admin = () => {
       if (activePlantId) {
         // Update existing plant
         const { error } = await supabase
-          .from('plants')
+          .from("plants")
           .update({
             name: values.name,
             scientific_name: values.scientificName,
@@ -280,35 +310,33 @@ const Admin = () => {
             model_url: values.modelUrl,
             updated_at: new Date().toISOString(),
           })
-          .eq('id', activePlantId);
+          .eq("id", activePlantId);
 
         if (error) throw error;
-        
+
         toast({
           title: "Plant Updated",
           description: `${values.name} has been updated successfully.`,
         });
       } else {
         // Create new plant
-        const { error } = await supabase
-          .from('plants')
-          .insert({
-            name: values.name,
-            scientific_name: values.scientificName,
-            system: values.system,
-            category: values.category,
-            description: values.description,
-            uses: values.uses,
-            growth_info: values.growthInfo,
-            image_url: values.imageUrl,
-            benefits: values.benefits,
-            history: values.history,
-            precautions: values.precautions,
-            model_url: values.modelUrl,
-          });
+        const { error } = await supabase.from("plants").insert({
+          name: values.name,
+          scientific_name: values.scientificName,
+          system: values.system,
+          category: values.category,
+          description: values.description,
+          uses: values.uses,
+          growth_info: values.growthInfo,
+          image_url: values.imageUrl,
+          benefits: values.benefits,
+          history: values.history,
+          precautions: values.precautions,
+          model_url: values.modelUrl,
+        });
 
         if (error) throw error;
-        
+
         toast({
           title: "Plant Added",
           description: `${values.name} has been added to the database.`,
@@ -318,24 +346,28 @@ const Admin = () => {
       // Refresh data and close dialog
       setIsAddPlantDialogOpen(false);
       fetchData();
-      queryClient.invalidateQueries({ queryKey: ['plants'] });
+      queryClient.invalidateQueries({ queryKey: ["plants"] });
     } catch (error) {
-      console.error('Error submitting plant:', error);
+      console.error("Error submitting plant:", error);
       toast({
         title: "Error",
         description: "There was a problem saving the plant. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
 
-  // Handle tour form submission (create or update)
   const onSubmitTour = async (values: z.infer<typeof tourFormSchema>) => {
+    console.log("Submitting tour:", values);
+  
     try {
-      if (activeTourId) {
-        // Update existing tour
-        const { error } = await supabase
-          .from('tours')
+      let tourId = activeTourId;
+      let error;
+  
+      if (tourId) {
+        // 🛠 Update existing tour
+        ({ error } = await supabase
+          .from("tours")
           .update({
             name: values.name,
             description: values.description,
@@ -343,49 +375,123 @@ const Admin = () => {
             image_url: values.imageUrl,
             updated_at: new Date().toISOString(),
           })
-          .eq('id', activeTourId);
-
+          .eq("id", tourId));
+  
         if (error) throw error;
-        
+  
         toast({
           title: "Tour Updated",
           description: `${values.name} has been updated successfully.`,
         });
+  
+        // ❌ Remove old plant links before adding new ones
+        await supabase.from("tour_plants").delete().eq("tour_id", tourId);
       } else {
-        // Create new tour
-        const { error } = await supabase
-          .from('tours')
+        // ➕ Create new tour
+        const { data, error: insertError } = await supabase
+          .from("tours")
           .insert({
             name: values.name,
             description: values.description,
             duration: values.duration,
             image_url: values.imageUrl,
-          });
-
-        if (error) throw error;
-        
+          })
+          .select("id")
+          .single();
+  
+        if (insertError) throw insertError;
+        tourId = data.id;
+  
         toast({
           title: "Tour Added",
           description: `${values.name} has been added to the database.`,
         });
       }
-
-      // Refresh data and close dialog
+  
+      // 🌱 Link plants to tour
+      if (values.plants?.length > 0) {
+        const plantLinks = values.plants.map((plantId) => ({
+          tour_id: tourId,
+          plant_id: plantId,
+        }));
+  
+        const { error: linkError } = await supabase.from("tour_plants").insert(plantLinks);
+        if (linkError) throw linkError;
+      }
+  
+      // 🔄 Refresh data and close dialog
       setIsAddTourDialogOpen(false);
       fetchData();
-      queryClient.invalidateQueries({ queryKey: ['tours'] });
+      queryClient.invalidateQueries({ queryKey: ["tours"] });
+  
     } catch (error) {
-      console.error('Error submitting tour:', error);
+      console.error("Error submitting tour:", error);
       toast({
         title: "Error",
         description: "There was a problem saving the tour. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
+  
+  // // Handle tour form submission (create or update)
+  // const onSubmitTour = async (values: z.infer<typeof tourFormSchema>) => {
+  //   console.log("Submitting tour:", values);
+
+
+  //   try {
+  //     if (activeTourId) {
+  //       // Update existing tour
+  //       const { error } = await supabase
+  //         .from("tours")
+  //         .update({
+  //           name: values.name,
+  //           description: values.description,
+  //           duration: values.duration,
+  //           image_url: values.imageUrl,
+  //           updated_at: new Date().toISOString(),
+  //         })
+  //         .eq("id", activeTourId);
+
+  //       if (error) throw error;
+
+  //       toast({
+  //         title: "Tour Updated",
+  //         description: `${values.name} has been updated successfully.`,
+  //       });
+  //     } else {
+  //       // Create new tour
+  //       const { error } = await supabase.from("tours").insert({
+  //         name: values.name,
+  //         description: values.description,
+  //         duration: values.duration,
+  //         image_url: values.imageUrl,
+  //       });
+
+  //       if (error) throw error;
+
+  //       toast({
+  //         title: "Tour Added",
+  //         description: `${values.name} has been added to the database.`,
+  //       });
+  //     }
+
+  //     // Refresh data and close dialog
+  //     setIsAddTourDialogOpen(false);
+  //     fetchData();
+  //     queryClient.invalidateQueries({ queryKey: ["tours"] });
+  //   } catch (error) {
+  //     console.error("Error submitting tour:", error);
+  //     toast({
+  //       title: "Error",
+  //       description: "There was a problem saving the tour. Please try again.",
+  //       variant: "destructive",
+  //     });
+  //   }
+  // };
 
   // Confirm delete dialog
-  const openConfirmDelete = (id: string, type: 'plant' | 'tour') => {
+  const openConfirmDelete = (id: string, type: "plant" | "tour") => {
     setItemToDelete({ id, type });
     setIsConfirmDeleteOpen(true);
   };
@@ -393,37 +499,34 @@ const Admin = () => {
   // Handle deletion after confirmation
   const handleConfirmDelete = async () => {
     if (!itemToDelete) return;
-    
+
     try {
       const { id, type } = itemToDelete;
-      const table = type === 'plant' ? 'plants' : 'tours';
-      
-      const { error } = await supabase
-        .from(table)
-        .delete()
-        .eq('id', id);
-      
+      const table = type === "plant" ? "plants" : "tours";
+
+      const { error } = await supabase.from(table).delete().eq("id", id);
+
       if (error) throw error;
-      
+
       toast({
-        title: `${type === 'plant' ? 'Plant' : 'Tour'} Deleted`,
+        title: `${type === "plant" ? "Plant" : "Tour"} Deleted`,
         description: `The ${type} has been removed successfully.`,
       });
-      
+
       fetchData();
-      
+
       // Invalidate relevant query
-      if (type === 'plant') {
-        queryClient.invalidateQueries({ queryKey: ['plants'] });
+      if (type === "plant") {
+        queryClient.invalidateQueries({ queryKey: ["plants"] });
       } else {
-        queryClient.invalidateQueries({ queryKey: ['tours'] });
+        queryClient.invalidateQueries({ queryKey: ["tours"] });
       }
     } catch (error) {
       console.error(`Error deleting ${itemToDelete.type}:`, error);
       toast({
         title: "Error",
         description: `There was a problem deleting the ${itemToDelete.type}.`,
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsConfirmDeleteOpen(false);
@@ -448,17 +551,19 @@ const Admin = () => {
   // Filter users based on search term
   const filteredUsers = users.filter(
     (user) =>
-      (user.full_name && user.full_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (user.username && user.username.toLowerCase().includes(searchTerm.toLowerCase()))
+      (user.full_name &&
+        user.full_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (user.username &&
+        user.username.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   // Format date helper
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    return new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     }).format(date);
   };
 
@@ -498,9 +603,7 @@ const Admin = () => {
             <p className="text-muted-foreground mb-6">
               You do not have permission to access this page.
             </p>
-            <Button onClick={() => navigate("/")}>
-              Return to Home
-            </Button>
+            <Button onClick={() => navigate("/")}>Return to Home</Button>
           </div>
         </main>
         <Footer />
@@ -517,10 +620,16 @@ const Admin = () => {
             <div className="flex items-start justify-between mb-8">
               <div>
                 <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-                <p className="text-muted-foreground mt-1">Manage AYUSH Herbal Garden content</p>
+                <p className="text-muted-foreground mt-1">
+                  Manage AYUSH Herbal Garden content
+                </p>
               </div>
               <div className="hidden sm:block">
-                <Button variant="outline" onClick={() => navigate("/home")} className="mr-2">
+                <Button
+                  variant="outline"
+                  onClick={() => navigate("/home")}
+                  className="mr-2"
+                >
                   View Website
                 </Button>
               </div>
@@ -529,10 +638,17 @@ const Admin = () => {
             {/* Dashboard Overview */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               {statCards.map((stat, index) => (
-                <Card key={index} className={`hover:shadow-md transition-shadow border-l-4 border-l-${stat.color.split('-')[1]}-500`}>
+                <Card
+                  key={index}
+                  className={`hover:shadow-md transition-shadow border-l-4 border-l-${
+                    stat.color.split("-")[1]
+                  }-500`}
+                >
                   <CardHeader className={`pb-2 ${stat.bgColor}`}>
                     <div className="flex justify-between items-center">
-                      <CardTitle className="text-lg font-medium">{stat.title}</CardTitle>
+                      <CardTitle className="text-lg font-medium">
+                        {stat.title}
+                      </CardTitle>
                       <div className={`rounded-full p-2 ${stat.bgColor}`}>
                         <stat.icon className={`h-5 w-5 ${stat.color}`} />
                       </div>
@@ -540,7 +656,9 @@ const Admin = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="text-3xl font-bold mb-1">{stat.value}</div>
-                    <CardDescription>Last updated: {new Date().toLocaleDateString()}</CardDescription>
+                    <CardDescription>
+                      Last updated: {new Date().toLocaleDateString()}
+                    </CardDescription>
                   </CardContent>
                 </Card>
               ))}
@@ -579,16 +697,21 @@ const Admin = () => {
                 {isLoading ? (
                   <div className="flex justify-center items-center py-16">
                     <Loader2 className="h-8 w-8 animate-spin text-herbal-green" />
-                    <span className="ml-2 text-muted-foreground">Loading data...</span>
+                    <span className="ml-2 text-muted-foreground">
+                      Loading data...
+                    </span>
                   </div>
                 ) : (
                   <>
                     {/* Plants Tab */}
                     <TabsContent value="plants">
                       <div className="flex justify-end mb-4">
-                        <Dialog open={isAddPlantDialogOpen} onOpenChange={setIsAddPlantDialogOpen}>
+                        <Dialog
+                          open={isAddPlantDialogOpen}
+                          onOpenChange={setIsAddPlantDialogOpen}
+                        >
                           <DialogTrigger asChild>
-                            <Button 
+                            <Button
                               onClick={() => {
                                 plantForm.reset();
                                 setActivePlantId(null);
@@ -605,12 +728,16 @@ const Admin = () => {
                                 {activePlantId ? "Edit Plant" : "Add New Plant"}
                               </DialogTitle>
                               <DialogDescription>
-                                Fill in the details for the medicinal plant. All fields marked with * are required.
+                                Fill in the details for the medicinal plant. All
+                                fields marked with * are required.
                               </DialogDescription>
                             </DialogHeader>
 
                             <Form {...plantForm}>
-                              <form onSubmit={plantForm.handleSubmit(onSubmitPlant)} className="space-y-4 py-4">
+                              <form
+                                onSubmit={plantForm.handleSubmit(onSubmitPlant)}
+                                className="space-y-4 py-4"
+                              >
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   <FormField
                                     control={plantForm.control}
@@ -619,13 +746,16 @@ const Admin = () => {
                                       <FormItem>
                                         <FormLabel>Name *</FormLabel>
                                         <FormControl>
-                                          <Input placeholder="e.g. Ashwagandha" {...field} />
+                                          <Input
+                                            placeholder="e.g. Ashwagandha"
+                                            {...field}
+                                          />
                                         </FormControl>
                                         <FormMessage />
                                       </FormItem>
                                     )}
                                   />
-                                  
+
                                   <FormField
                                     control={plantForm.control}
                                     name="scientificName"
@@ -633,7 +763,10 @@ const Admin = () => {
                                       <FormItem>
                                         <FormLabel>Scientific Name *</FormLabel>
                                         <FormControl>
-                                          <Input placeholder="e.g. Withania somnifera" {...field} />
+                                          <Input
+                                            placeholder="e.g. Withania somnifera"
+                                            {...field}
+                                          />
                                         </FormControl>
                                         <FormMessage />
                                       </FormItem>
@@ -658,18 +791,28 @@ const Admin = () => {
                                             </SelectTrigger>
                                           </FormControl>
                                           <SelectContent>
-                                            <SelectItem value="ayurveda">Ayurveda</SelectItem>
-                                            <SelectItem value="yoga">Yoga & Naturopathy</SelectItem>
-                                            <SelectItem value="unani">Unani</SelectItem>
-                                            <SelectItem value="siddha">Siddha</SelectItem>
-                                            <SelectItem value="homeopathy">Homeopathy</SelectItem>
+                                            <SelectItem value="ayurveda">
+                                              Ayurveda
+                                            </SelectItem>
+                                            <SelectItem value="yoga">
+                                              Yoga & Naturopathy
+                                            </SelectItem>
+                                            <SelectItem value="unani">
+                                              Unani
+                                            </SelectItem>
+                                            <SelectItem value="siddha">
+                                              Siddha
+                                            </SelectItem>
+                                            <SelectItem value="homeopathy">
+                                              Homeopathy
+                                            </SelectItem>
                                           </SelectContent>
                                         </Select>
                                         <FormMessage />
                                       </FormItem>
                                     )}
                                   />
-                                  
+
                                   <FormField
                                     control={plantForm.control}
                                     name="category"
@@ -677,7 +820,10 @@ const Admin = () => {
                                       <FormItem>
                                         <FormLabel>Category</FormLabel>
                                         <FormControl>
-                                          <Input placeholder="e.g. Herb, Shrub, Tree" {...field} />
+                                          <Input
+                                            placeholder="e.g. Herb, Shrub, Tree"
+                                            {...field}
+                                          />
                                         </FormControl>
                                         <FormMessage />
                                       </FormItem>
@@ -692,10 +838,10 @@ const Admin = () => {
                                     <FormItem>
                                       <FormLabel>Description</FormLabel>
                                       <FormControl>
-                                        <Textarea 
+                                        <Textarea
                                           placeholder="Describe the plant..."
                                           className="min-h-[100px]"
-                                          {...field} 
+                                          {...field}
                                         />
                                       </FormControl>
                                       <FormMessage />
@@ -710,10 +856,10 @@ const Admin = () => {
                                     <FormItem>
                                       <FormLabel>Benefits</FormLabel>
                                       <FormControl>
-                                        <Textarea 
+                                        <Textarea
                                           placeholder="Describe the benefits of this plant..."
                                           className="min-h-[80px]"
-                                          {...field} 
+                                          {...field}
                                         />
                                       </FormControl>
                                       <FormMessage />
@@ -728,10 +874,10 @@ const Admin = () => {
                                     <FormItem>
                                       <FormLabel>Medicinal Uses</FormLabel>
                                       <FormControl>
-                                        <Textarea 
+                                        <Textarea
                                           placeholder="List the medicinal uses..."
                                           className="min-h-[80px]"
-                                          {...field} 
+                                          {...field}
                                         />
                                       </FormControl>
                                       <FormMessage />
@@ -746,10 +892,10 @@ const Admin = () => {
                                     <FormItem>
                                       <FormLabel>Growth Information</FormLabel>
                                       <FormControl>
-                                        <Textarea 
+                                        <Textarea
                                           placeholder="Information about growing conditions..."
                                           className="min-h-[80px]"
-                                          {...field} 
+                                          {...field}
                                         />
                                       </FormControl>
                                       <FormMessage />
@@ -762,12 +908,14 @@ const Admin = () => {
                                   name="history"
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel>Historical Background</FormLabel>
+                                      <FormLabel>
+                                        Historical Background
+                                      </FormLabel>
                                       <FormControl>
-                                        <Textarea 
+                                        <Textarea
                                           placeholder="Historical background and traditional usage..."
                                           className="min-h-[80px]"
-                                          {...field} 
+                                          {...field}
                                         />
                                       </FormControl>
                                       <FormMessage />
@@ -782,10 +930,10 @@ const Admin = () => {
                                     <FormItem>
                                       <FormLabel>Precautions</FormLabel>
                                       <FormControl>
-                                        <Textarea 
+                                        <Textarea
                                           placeholder="Safety precautions and contraindications..."
                                           className="min-h-[80px]"
-                                          {...field} 
+                                          {...field}
                                         />
                                       </FormControl>
                                       <FormMessage />
@@ -801,7 +949,10 @@ const Admin = () => {
                                       <FormItem>
                                         <FormLabel>Image URL</FormLabel>
                                         <FormControl>
-                                          <Input placeholder="https://example.com/image.jpg" {...field} />
+                                          <Input
+                                            placeholder="https://example.com/image.jpg"
+                                            {...field}
+                                          />
                                         </FormControl>
                                         <FormMessage />
                                       </FormItem>
@@ -815,7 +966,10 @@ const Admin = () => {
                                       <FormItem>
                                         <FormLabel>3D Model URL</FormLabel>
                                         <FormControl>
-                                          <Input placeholder="https://example.com/model.glb" {...field} />
+                                          <Input
+                                            placeholder="https://example.com/model.glb"
+                                            {...field}
+                                          />
                                         </FormControl>
                                         <FormMessage />
                                       </FormItem>
@@ -827,11 +981,13 @@ const Admin = () => {
                                   <Button
                                     type="button"
                                     variant="outline"
-                                    onClick={() => setIsAddPlantDialogOpen(false)}
+                                    onClick={() =>
+                                      setIsAddPlantDialogOpen(false)
+                                    }
                                   >
                                     Cancel
                                   </Button>
-                                  <Button 
+                                  <Button
                                     type="submit"
                                     className="bg-herbal-green-dark hover:bg-herbal-green/80"
                                   >
@@ -840,8 +996,10 @@ const Admin = () => {
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                         Saving...
                                       </>
+                                    ) : activePlantId ? (
+                                      "Update Plant"
                                     ) : (
-                                      activePlantId ? "Update Plant" : "Add Plant"
+                                      "Add Plant"
                                     )}
                                   </Button>
                                 </DialogFooter>
@@ -857,27 +1015,41 @@ const Admin = () => {
                             <TableHeader>
                               <TableRow>
                                 <TableHead>Name</TableHead>
-                                <TableHead className="hidden md:table-cell">Scientific Name</TableHead>
+                                <TableHead className="hidden md:table-cell">
+                                  Scientific Name
+                                </TableHead>
                                 <TableHead>System</TableHead>
-                                <TableHead className="hidden md:table-cell">Category</TableHead>
-                                <TableHead className="hidden md:table-cell">Added On</TableHead>
-                                <TableHead className="w-[80px]">Actions</TableHead>
+                                <TableHead className="hidden md:table-cell">
+                                  Category
+                                </TableHead>
+                                <TableHead className="hidden md:table-cell">
+                                  Added On
+                                </TableHead>
+                                <TableHead className="w-[80px]">
+                                  Actions
+                                </TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
                               {filteredPlants.map((plant) => (
                                 <TableRow key={plant.id}>
-                                  <TableCell className="font-medium">{plant.name}</TableCell>
+                                  <TableCell className="font-medium">
+                                    {plant.name}
+                                  </TableCell>
                                   <TableCell className="italic hidden md:table-cell">
                                     {plant.scientific_name}
                                   </TableCell>
                                   <TableCell>
                                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-herbal-green/10 text-herbal-green">
-                                      {plant.system.charAt(0).toUpperCase() + plant.system.slice(1)}
+                                      {plant.system.charAt(0).toUpperCase() +
+                                        plant.system.slice(1)}
                                     </span>
                                   </TableCell>
                                   <TableCell className="hidden md:table-cell">
-                                    {plant.category ? plant.category.charAt(0).toUpperCase() + plant.category.slice(1) : '-'}
+                                    {plant.category
+                                      ? plant.category.charAt(0).toUpperCase() +
+                                        plant.category.slice(1)
+                                      : "-"}
                                   </TableCell>
                                   <TableCell className="hidden md:table-cell">
                                     {formatDate(plant.created_at)}
@@ -897,7 +1069,9 @@ const Admin = () => {
                                           Edit
                                         </DropdownMenuItem>
                                         <DropdownMenuItem
-                                          onClick={() => openConfirmDelete(plant.id, 'plant')}
+                                          onClick={() =>
+                                            openConfirmDelete(plant.id, "plant")
+                                          }
                                           className="text-red-600"
                                         >
                                           <Trash2 className="mr-2 h-4 w-4" />
@@ -917,7 +1091,7 @@ const Admin = () => {
                           <p className="text-muted-foreground mb-2">
                             No plants found matching your search.
                           </p>
-                          <Button 
+                          <Button
                             variant="outline"
                             onClick={() => setSearchTerm("")}
                             className="mt-2"
@@ -929,205 +1103,345 @@ const Admin = () => {
                     </TabsContent>
 
                     {/* Tours Tab */}
-<TabsContent value="tours">
-  <div className="flex justify-end mb-4">
-    <Dialog open={isAddTourDialogOpen} onOpenChange={setIsAddTourDialogOpen}>
-      <DialogTrigger asChild>
-        <Button
-          onClick={() => {
-            tourForm.reset();
-            setActiveTourId(null);
-          }}
-          className="bg-herbal-green-dark hover:bg-herbal-green-dark/80"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Add New Tour
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>
-            {activeTourId ? "Edit Tour" : "Add New Tour"}
-          </DialogTitle>
-          <DialogDescription>
-            Fill in the details for the virtual garden tour. All fields marked with * are required.
-          </DialogDescription>
-        </DialogHeader>
+                    <TabsContent value="tours">
+                      <div className="flex justify-end mb-4">
+                        <Dialog
+                          open={isAddTourDialogOpen}
+                          onOpenChange={setIsAddTourDialogOpen}
+                        >
+                          <DialogTrigger asChild>
+                            <Button
+                              onClick={() => {
+                                tourForm.reset();
+                                setActiveTourId(null);
+                              }}
+                              className="bg-herbal-green-dark hover:bg-herbal-green-dark/80"
+                            >
+                              <Plus className="mr-2 h-4 w-4" />
+                              Add New Tour
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-[600px]">
+                            <DialogHeader>
+                              <DialogTitle>
+                                {activeTourId ? "Edit Tour" : "Add New Tour"}
+                              </DialogTitle>
+                              <DialogDescription>
+                                Fill in the details for the virtual garden tour.
+                                All fields marked with * are required.
+                              </DialogDescription>
+                            </DialogHeader>
 
-        <Form {...tourForm}>
-          <form onSubmit={tourForm.handleSubmit(onSubmitTour)} className="space-y-4 py-4">
-            <FormField
-              control={tourForm.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. Ayurvedic Plants Tour" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                            <Form {...tourForm}>
+                              <form
+                                onSubmit={tourForm.handleSubmit(onSubmitTour)}
+                                className="space-y-4 py-4"
+                              >
+                                <FormField
+                                  control={tourForm.control}
+                                  name="name"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Name *</FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          placeholder="e.g. Ayurvedic Plants Tour"
+                                          {...field}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
 
-            <FormField
-              control={tourForm.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    <span className="text-muted-foreground">Description</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Describe the tour..."
-                      className="min-h-[100px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                                <FormField
+                                  control={tourForm.control}
+                                  name="description"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>
+                                        <span className="text-muted-foreground">
+                                          Description
+                                        </span>
+                                      </FormLabel>
+                                      <FormControl>
+                                        <Textarea
+                                          placeholder="Describe the tour..."
+                                          className="min-h-[100px]"
+                                          {...field}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
 
-            <FormField
-              control={tourForm.control}
-              name="duration"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    <span className="text-muted-foreground">Duration</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="e.g. 2 hours"
-                      className="min-h-[40px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                                <FormField
+                                  control={tourForm.control}
+                                  name="duration"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>
+                                        <span className="text-muted-foreground">
+                                          Duration
+                                        </span>
+                                      </FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          placeholder="e.g. 2 hours"
+                                          className="min-h-[40px]"
+                                          {...field}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
 
-            <FormField
-              control={tourForm.control}
-              name="imageUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    <span className="text-muted-foreground">Image URL</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Enter image URL"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                                <FormField
+                                  control={tourForm.control}
+                                  name="plants"
+                                  render={({ field }) => (
+                                    <FormItem className="flex flex-col">
+                                      <FormLabel>Plants *</FormLabel>
+                                      <Popover>
+                                        <PopoverTrigger asChild>
+                                          <FormControl>
+                                            <Button
+                                              variant="outline"
+                                              role="combobox"
+                                              className={cn(
+                                                "w-full justify-between",
+                                                !field.value?.length &&
+                                                  "text-muted-foreground"
+                                              )}
+                                            >
+                                              {field.value?.length > 0
+                                                ? `${field.value.length} plant${
+                                                    field.value.length > 1
+                                                      ? "s"
+                                                      : ""
+                                                  } selected`
+                                                : "Select plants"}
+                                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                            </Button>
+                                          </FormControl>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-full p-0">
+                                          <Command>
+                                            <CommandInput placeholder="Search plants..." />
+                                            <CommandList>
+                                              <CommandEmpty>
+                                                No plant found.
+                                              </CommandEmpty>
+                                              <CommandGroup>
+                                                {plants.map((plant) => (
+                                                  <CommandItem
+                                                    key={plant.id}
+                                                    value={plant.name}
+                                                    onSelect={() => {
+                                                      const currentValues =
+                                                        field.value || [];
+                                                      const newValues =
+                                                        currentValues.includes(
+                                                          plant.id
+                                                        )
+                                                          ? currentValues.filter(
+                                                              (id) =>
+                                                                id !== plant.id
+                                                            )
+                                                          : [
+                                                              ...currentValues,
+                                                              plant.id,
+                                                            ];
+                                                      field.onChange(newValues);
+                                                    }}
+                                                  >
+                                                    <Check
+                                                      className={cn(
+                                                        "mr-2 h-4 w-4",
+                                                        field.value?.includes(
+                                                          plant.id
+                                                        )
+                                                          ? "opacity-100"
+                                                          : "opacity-0"
+                                                      )}
+                                                    />
+                                                    {plant.name}
+                                                  </CommandItem>
+                                                ))}
+                                              </CommandGroup>
+                                            </CommandList>
+                                          </Command>
+                                        </PopoverContent>
+                                      </Popover>
 
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsAddTourDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                className="bg-herbal-green-dark hover:bg-herbal-green/80"
-              >
-                {tourForm.formState.isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  activeTourId ? "Update Tour" : "Add Tour"
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
-  </div>
+                                      {/* Display selected plants as badges */}
+                                      {field.value?.length > 0 && (
+                                        <div className="flex flex-wrap gap-1 mt-2">
+                                          {field.value.map((plantId) => {
+                                            const plant = plants.find(
+                                              (p) => p.id === plantId
+                                            );
+                                            return plant ? (
+                                              <Badge
+                                                key={plant.id}
+                                                variant="secondary"
+                                                className="flex items-center gap-1"
+                                              >
+                                                {plant.name}
+                                                <X
+                                                  className="h-3 w-3 cursor-pointer"
+                                                  onClick={() => {
+                                                    field.onChange(
+                                                      field.value.filter(
+                                                        (id) => id !== plant.id
+                                                      )
+                                                    );
+                                                  }}
+                                                />
+                                              </Badge>
+                                            ) : null;
+                                          })}
+                                        </div>
+                                      )}
 
-  {filteredTours.length > 0 ? (
-    <div className="border rounded-md">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead className="hidden md:table-cell">Description</TableHead>
-            <TableHead>Duration</TableHead>
-            <TableHead className="hidden md:table-cell">Added On</TableHead>
-            <TableHead className="w-[80px]">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filteredTours.map((tour) => (
-            <TableRow key={tour.id}>
-              <TableCell className="font-medium">{tour.name}</TableCell>
-              <TableCell className="italic hidden md:table-cell">
-                {tour.description}
-              </TableCell>
-              <TableCell>
-                {tour.duration}
-              </TableCell>
-              <TableCell className="hidden md:table-cell">
-                {formatDate(tour.created_at)}
-              </TableCell>
-              <TableCell>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() => handleEditTour(tour)}
-                    >
-                      <Edit className="mr-2 h-4 w-4" />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => openConfirmDelete(tour.id, 'tour')}
-                      className="text-red-600"
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  ) : (
-    <div className="text-center p-8 border rounded-md bg-muted/10">
-      <Leaf className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-      <p className="text-muted-foreground mb-2">
-        No tours found matching your search.
-      </p>
-      <Button
-        variant="outline"
-        onClick={() => setSearchTerm("")}
-        className="mt-2"
-      >
-        Clear search
-      </Button>
-    </div>
-  )}
-</TabsContent>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
 
+                                <FormField
+                                  control={tourForm.control}
+                                  name="imageUrl"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>
+                                        <span className="text-muted-foreground">
+                                          Image URL
+                                        </span>
+                                      </FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          placeholder="Enter image URL"
+                                          {...field}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <DialogFooter>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() =>
+                                      setIsAddTourDialogOpen(false)
+                                    }
+                                  >
+                                    Cancel
+                                  </Button>
+                                  <Button
+                                    type="submit"
+                                    className="bg-herbal-green-dark hover:bg-herbal-green/80"
+                                  >
+                                    {tourForm.formState.isSubmitting ? (
+                                      <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Saving...
+                                      </>
+                                    ) : activeTourId ? (
+                                      "Update Tour"
+                                    ) : (
+                                      "Add Tour"
+                                    )}
+                                  </Button>
+                                </DialogFooter>
+                              </form>
+                            </Form>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+
+                      {filteredTours.length > 0 ? (
+                        <div className="border rounded-md">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Name</TableHead>
+                                <TableHead className="hidden md:table-cell">
+                                  Description
+                                </TableHead>
+                                <TableHead>Duration</TableHead>
+                                <TableHead className="hidden md:table-cell">
+                                  Added On
+                                </TableHead>
+                                <TableHead className="w-[80px]">
+                                  Actions
+                                </TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {filteredTours.map((tour) => (
+                                <TableRow key={tour.id}>
+                                  <TableCell className="font-medium">
+                                    {tour.name}
+                                  </TableCell>
+                                  <TableCell className="italic hidden md:table-cell">
+                                    {tour.description}
+                                  </TableCell>
+                                  <TableCell>{tour.duration}</TableCell>
+                                  <TableCell className="hidden md:table-cell">
+                                    {formatDate(tour.created_at)}
+                                  </TableCell>
+                                  <TableCell>
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon">
+                                          <MoreVertical className="h-4 w-4" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                        <DropdownMenuItem
+                                          onClick={() => handleEditTour(tour)}
+                                        >
+                                          <Edit className="mr-2 h-4 w-4" />
+                                          Edit
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                          onClick={() =>
+                                            openConfirmDelete(tour.id, "tour")
+                                          }
+                                          className="text-red-600"
+                                        >
+                                          <Trash2 className="mr-2 h-4 w-4" />
+                                          Delete
+                                        </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      ) : (
+                        <div className="text-center p-8 border rounded-md bg-muted/10">
+                          <Leaf className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                          <p className="text-muted-foreground mb-2">
+                            No tours found matching your search.
+                          </p>
+                          <Button
+                            variant="outline"
+                            onClick={() => setSearchTerm("")}
+                            className="mt-2"
+                          >
+                            Clear search
+                          </Button>
+                        </div>
+                      )}
+                    </TabsContent>
 
                     {/* Users Tab */}
                     <TabsContent value="users">
@@ -1139,8 +1453,12 @@ const Admin = () => {
                                 <TableHead>Name</TableHead>
                                 <TableHead>Email</TableHead>
                                 <TableHead>Role</TableHead>
-                                <TableHead className="hidden md:table-cell">Created At</TableHead>
-                                <TableHead className="w-[80px]">Actions</TableHead>
+                                <TableHead className="hidden md:table-cell">
+                                  Created At
+                                </TableHead>
+                                <TableHead className="w-[80px]">
+                                  Actions
+                                </TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -1149,12 +1467,8 @@ const Admin = () => {
                                   <TableCell className="font-medium">
                                     {user.full_name || user.username}
                                   </TableCell>
-                                  <TableCell>
-                                    {user.username}
-                                  </TableCell>
-                                  <TableCell>
-                                    {user.role}
-                                  </TableCell>
+                                  <TableCell>{user.username}</TableCell>
+                                  <TableCell>{user.role}</TableCell>
                                   <TableCell className="hidden md:table-cell">
                                     {formatDate(user.created_at)}
                                   </TableCell>
@@ -1167,7 +1481,9 @@ const Admin = () => {
                                       </DropdownMenuTrigger>
                                       <DropdownMenuContent align="end">
                                         <DropdownMenuItem
-                                          onClick={() => navigate(`/admin/users/${user.id}`)}
+                                          onClick={() =>
+                                            navigate(`/admin/users/${user.id}`)
+                                          }
                                         >
                                           <Users className="mr-2 h-4 w-4" />
                                           View Profile
@@ -1186,7 +1502,7 @@ const Admin = () => {
                           <p className="text-muted-foreground mb-2">
                             No users found matching your search.
                           </p>
-                          <Button 
+                          <Button
                             variant="outline"
                             onClick={() => setSearchTerm("")}
                             className="mt-2"
@@ -1202,12 +1518,16 @@ const Admin = () => {
             </div>
 
             {/* Confirmation Dialog for Delete */}
-            <Dialog open={isConfirmDeleteOpen} onOpenChange={setIsConfirmDeleteOpen}>
+            <Dialog
+              open={isConfirmDeleteOpen}
+              onOpenChange={setIsConfirmDeleteOpen}
+            >
               <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                   <DialogTitle>Confirm Deletion</DialogTitle>
                   <DialogDescription>
-                    Are you sure you want to delete this {itemToDelete?.type}? This action cannot be undone.
+                    Are you sure you want to delete this {itemToDelete?.type}?
+                    This action cannot be undone.
                   </DialogDescription>
                 </DialogHeader>
                 <DialogFooter className="mt-4">
@@ -1217,10 +1537,7 @@ const Admin = () => {
                   >
                     Cancel
                   </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={handleConfirmDelete}
-                  >
+                  <Button variant="destructive" onClick={handleConfirmDelete}>
                     Delete
                   </Button>
                 </DialogFooter>

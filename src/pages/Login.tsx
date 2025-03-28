@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -26,12 +25,14 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  const { signIn, isAdmin } = useAuth();
+  const { signIn, isAdmin, sendPasswordResetEmail } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+
   const from = location.state?.from || "/";
-  
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -42,10 +43,10 @@ const Login = () => {
 
   const onSubmit = async (data: FormData) => {
     setIsLoading(true);
-    
+
     try {
       const { error } = await signIn(data.email, data.password);
-      
+
       if (error) {
         console.error("Login error:", error);
         toast({
@@ -58,7 +59,7 @@ const Login = () => {
           title: "Welcome back!",
           description: "You have successfully logged in",
         });
-        
+
         // Wait for admin status to be set
         setTimeout(() => {
           // Redirect admin users to admin dashboard
@@ -82,6 +83,33 @@ const Login = () => {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!resetEmail) {
+      toast({
+        title: "Email required",
+        description: "Please enter your email address",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      await sendPasswordResetEmail(resetEmail);
+      toast({
+        title: "Reset email sent",
+        description: "Please check your email for the reset link",
+      });
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Error sending reset email:", error);
+      toast({
+        title: "Failed to send reset email",
+        description: "Please try again later",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -94,7 +122,7 @@ const Login = () => {
             <h1 className="text-3xl font-bold">Welcome Back</h1>
             <p className="text-muted-foreground mt-2">Sign in to your AYUSH Herbal Garden account</p>
           </div>
-          
+
           <Card>
             <CardHeader>
               <CardTitle>Sign In</CardTitle>
@@ -118,7 +146,7 @@ const Login = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="password"
@@ -127,10 +155,10 @@ const Login = () => {
                         <FormLabel>Password</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Input 
-                              placeholder="••••••••" 
-                              type={showPassword ? "text" : "password"} 
-                              {...field} 
+                            <Input
+                              placeholder="••••••••"
+                              type={showPassword ? "text" : "password"}
+                              {...field}
                             />
                             <Button
                               type="button"
@@ -154,7 +182,7 @@ const Login = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? "Signing in..." : "Sign In"}
                   </Button>
@@ -171,11 +199,52 @@ const Login = () => {
                   Sign up
                 </Link>
               </div>
+              <div className="text-sm text-center text-muted-foreground">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(true)}
+                  className="font-medium text-herbal-green hover:text-herbal-green-dark underline underline-offset-4"
+                >
+                  Forgot Password?
+                </button>
+              </div>
             </CardFooter>
           </Card>
         </div>
       </main>
       <Footer />
+
+      {/* Forgot Password Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-8 max-w-sm w-full relative">
+            <button
+              className="absolute top-4 right-4 z-10 hover:bg-gray-100 rounded-full p-2 transition-colors"
+              onClick={() => setIsModalOpen(false)}
+            >
+              <span className="sr-only">Close</span>
+              <svg className="h-6 w-6 text-gray-600 hover:text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="space-y-6">
+              <h2 className="text-xl font-bold">Forgot Password</h2>
+              <p className="text-muted-foreground">
+                Enter your email address to receive a reset link.
+              </p>
+              <Input
+                type="email"
+                placeholder="you@example.com"
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+              />
+              <Button onClick={handleForgotPassword} className="w-full">
+                Send Reset Link
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -6,39 +6,6 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Clock, Leaf, Route, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-const RECOMMENDED_PLANTS = {
-  "Default": [
-    {
-      id: 6,
-      name: "Neem",
-      scientific_name: "Azadirachta indica",
-      image_url: "https://www.dabur.com/Medical%20Plants/Neem_1917057650%20%283%29.jpg",
-      benefits: "Supports overall health with its purifying and cleansing properties."
-    },
-    {
-      id: 1,
-      name: "Ashwagandha",
-      scientific_name: "Withania somnifera",
-      image_url: "https://m.media-amazon.com/images/I/41U1Uz5Q9HL.jpg",
-      benefits: "Powerful adaptogen that helps strengthen the immune system and reduce stress."
-    },
-    {
-      id: 4,
-      name: "Triphala",
-      scientific_name: "Combination of three fruits",
-      image_url: "https://media.post.rvohealth.io/wp-content/uploads/2020/09/triphala-ayurvedic-fruits-thumb-732x549.jpg",
-      benefits: "Supports digestive health, detoxification, and gut wellness."
-    },
-    {
-      id: 5,
-      name: "Ginger",
-      scientific_name: "Zingiber officinale",
-      image_url: "https://domf5oio6qrcr.cloudfront.net/medialibrary/16055/conversions/gettyimages-909215596-thumb.jpg",
-      benefits: "Aids digestion, reduces inflammation, and supports gut health."
-    }
-  ]
-};
-
 const VirtualTours = () => {
   const [tours, setTours] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -64,25 +31,51 @@ const VirtualTours = () => {
     fetchTours();
   }, []);
 
-  const categories = ["All", ...new Set(tours.map(tour => tour.category))];
+  const categories = ["All", ...new Set(tours.map((tour) => tour.category))];
 
   // Filter tours based on selected category
-  const filteredTours = selectedCategory === "All"
-    ? tours
-    : tours.filter(tour => tour.category === selectedCategory);
+  const filteredTours =
+    selectedCategory === "All"
+      ? tours
+      : tours.filter((tour) => tour.category === selectedCategory);
 
   // Get featured tours
-  const featuredTours = tours.filter(tour => tour.featured);
+  const featuredTours = tours.filter((tour) => tour.featured);
 
-  const openModal = (tour) => {
+  const [selectedTourPlants, setSelectedTourPlants] = useState([]);
+
+  const openModal = async (tour) => {
     setSelectedTour(tour);
     setIsModalOpen(true);
+
+    try {
+      const { data, error } = await supabase
+        .from("tour_plants")
+        .select("plants(id, name, scientific_name, image_url, benefits)")
+        .eq("tour_id", tour.id);
+
+      if (error) throw error;
+      setSelectedTourPlants(data.map((tp) => tp.plants)); // Extracting plant details
+    } catch (error) {
+      console.error("Error fetching tour plants:", error.message);
+    }
   };
 
   const closeModal = () => {
     setSelectedTour(null);
+    setSelectedTourPlants([]);
     setIsModalOpen(false);
   };
+
+  // const openModal = (tour) => {
+  //   setSelectedTour(tour);
+  //   setIsModalOpen(true);
+  // };
+
+  // const closeModal = () => {
+  //   setSelectedTour(null);
+  //   setIsModalOpen(false);
+  // };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -92,9 +85,13 @@ const VirtualTours = () => {
           <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1533038590840-1f704af5abb0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80')] bg-cover bg-center opacity-[0.03]"></div>
           <div className="container relative">
             <div className="max-w-3xl">
-              <h1 className="text-4xl font-bold mb-4">Virtual AYUSH Garden Tours</h1>
+              <h1 className="text-4xl font-bold mb-4">
+                Virtual AYUSH Garden Tours
+              </h1>
               <p className="text-lg text-muted-foreground mb-6">
-                Experience guided tours of our medicinal plant collection. Learn about their properties, uses, and significance in traditional medicine systems.
+                Experience guided tours of our medicinal plant collection. Learn
+                about their properties, uses, and significance in traditional
+                medicine systems.
               </p>
               <Button asChild>
                 <Link to="/garden">
@@ -113,7 +110,10 @@ const VirtualTours = () => {
               <h2 className="text-3xl font-bold mb-8">Featured Tours</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {featuredTours.map((tour) => (
-                  <div key={tour.id} className="group relative h-80 overflow-hidden rounded-xl">
+                  <div
+                    key={tour.id}
+                    className="group relative h-80 overflow-hidden rounded-xl"
+                  >
                     <img
                       src={tour.image_url}
                       alt={tour.name}
@@ -130,8 +130,12 @@ const VirtualTours = () => {
                           {tour.duration}
                         </span>
                       </div>
-                      <h3 className="text-xl font-bold text-white mb-2">{tour.name}</h3>
-                      <p className="text-white/80 mb-4 line-clamp-2">{tour.description}</p>
+                      <h3 className="text-xl font-bold text-white mb-2">
+                        {tour.name}
+                      </h3>
+                      <p className="text-white/80 mb-4 line-clamp-2">
+                        {tour.description}
+                      </p>
                       <Button asChild size="sm">
                         <Link to={`/tours/${tour.id}`}>
                           Start Tour
@@ -155,7 +159,9 @@ const VirtualTours = () => {
                 {categories.map((category) => (
                   <Button
                     key={category}
-                    variant={selectedCategory === category ? "default" : "outline"}
+                    variant={
+                      selectedCategory === category ? "default" : "outline"
+                    }
                     size="sm"
                     onClick={() => setSelectedCategory(category)}
                     className="flex items-center"
@@ -195,13 +201,19 @@ const VirtualTours = () => {
                           {tour.duration}
                         </span>
                       </div>
-                      <h3 className="text-xl font-semibold mb-2">{tour.name}</h3>
-                      <p className="text-muted-foreground mb-4 line-clamp-2">{tour.description}</p>
+                      <h3 className="text-xl font-semibold mb-2">
+                        {tour.name}
+                      </h3>
+                      <p className="text-muted-foreground mb-4 line-clamp-2">
+                        {tour.description}
+                      </p>
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">
-                          {tour.plant_count} plants
-                        </span>
-                        <Button variant="outline" size="sm" onClick={() => openModal(tour)}>
+                       
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openModal(tour)}
+                        >
                           View Tour
                         </Button>
                       </div>
@@ -238,7 +250,9 @@ const VirtualTours = () => {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
                 <div className="absolute bottom-0 left-0 p-6 text-white">
-                  <h3 className="text-3xl font-bold mb-2">{selectedTour.name}</h3>
+                  <h3 className="text-3xl font-bold mb-2">
+                    {selectedTour.name}
+                  </h3>
                   <div className="flex items-center gap-2">
                     <span className="ayush-pill ayurveda">
                       {selectedTour.category}
@@ -260,49 +274,50 @@ const VirtualTours = () => {
               </div>
 
               {/* Recommended Plants Section */}
-              <div>
-                <h4 className="text-2xl font-semibold mb-6 flex items-center">
-                  <Leaf className="mr-3 h-6 w-6 text-herbal-green" />
-                  Recommended Herbal Remedies
-                </h4>
+              {selectedTourPlants.length > 0 && (
+                <div>
+                  <h4 className="text-2xl font-semibold mb-6 flex items-center">
+                    <Leaf className="mr-3 h-6 w-6 text-herbal-green" />
+                    Included Plants
+                  </h4>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {(RECOMMENDED_PLANTS[selectedTour.category] || RECOMMENDED_PLANTS["Default"]).map((plant) => (
-                    <div
-                      key={plant.id}
-                      className="bg-white border border-herbal-sage/20 rounded-lg overflow-hidden hover:shadow-md transition-all group"
-                    >
-                      <div className="h-48 overflow-hidden">
-                        <img
-                          src={plant.image_url}
-                          alt={plant.name}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform"
-                        />
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {selectedTourPlants.map((plant) => (
+                      <div
+                        key={plant.id}
+                        className="bg-white border border-herbal-sage/20 rounded-lg overflow-hidden hover:shadow-md transition-all group"
+                      >
+                        <div className="h-48 overflow-hidden">
+                          <img
+                            src={plant.image_url}
+                            alt={plant.name}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                          />
+                        </div>
+                        <div className="p-4">
+                          <h5 className="text-lg font-semibold mb-2">
+                            {plant.name}
+                          </h5>
+                          <p className="text-xs text-muted-foreground mb-3 italic">
+                            {plant.scientific_name}
+                          </p>
+                          <Button
+                            asChild
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                          >
+                            <Link to={`/plants/${plant.id}`}>
+                              Learn More
+                              <ArrowRight className="ml-2 h-4 w-4" />
+                            </Link>
+                          </Button>
+                        </div>
                       </div>
-                      <div className="p-4">
-                        <h5 className="text-lg font-semibold mb-2">{plant.name}</h5>
-                        <p className="text-xs text-muted-foreground mb-3 italic">
-                          {plant.scientific_name}
-                        </p>
-                        {/* <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                          {plant.benefits}
-                        </p> */}
-                        <Button
-                          asChild
-                          variant="outline"
-                          size="sm"
-                          className="w-full"
-                        >
-                          <Link to={`/plants`}>
-                            Learn More
-                            <ArrowRight className="ml-2 h-4 w-4" />
-                          </Link>
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Action Buttons */}
               <div className="flex justify-end space-x-4 mt-3">
