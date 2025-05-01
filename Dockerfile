@@ -1,29 +1,24 @@
-# Use Node.js for building the application
-FROM node:18-alpine AS builder
+# Stage 1: Build the application
+FROM node:20-alpine AS builder
 
-# Set working directory inside the container
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package.json package-lock.json ./
-
-# Install dependencies
+COPY package.json package-lock.json* pnpm-lock.yaml* ./
 RUN npm install
 
-# Copy the rest of the project files
 COPY . .
 
-# Build the project
 RUN npm run build
 
-# Use an NGINX server to serve the built files
-FROM nginx:alpine
+# Stage 2: Serve the build using a lightweight web server
+FROM node:20-alpine
 
-# Copy built files from the builder stage to NGINX's serving directory
-COPY --from=builder /app/dist /usr/share/nginx/html
+WORKDIR /app
 
-# Expose port 80
-EXPOSE 80
+RUN npm install -g serve
 
-# Start NGINX
-CMD ["nginx", "-g", "daemon off;"]
+COPY --from=builder /app/dist ./dist
+
+EXPOSE 8080
+
+CMD ["serve", "-s", "dist", "-l", "8080"]
