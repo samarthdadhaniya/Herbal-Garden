@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -16,9 +15,17 @@ import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 
 const formSchema = z.object({
-  fullName: z.string().min(2, { message: "Name must be at least 2 characters" }),
+  fullName: z.string().min(2, { message: "Name must be at least 2 characters" }).refine(value => value.trim() !== '', {
+    message: "Name cannot be empty or whitespace",
+  }),
   email: z.string().email({ message: "Please enter a valid email address" }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+  password: z.string().min(6, { message: "Password must be at least 6 characters" })
+    .refine(value => !/\s/.test(value), {
+      message: "Password cannot contain whitespace",
+    })
+    .refine(value => !/\b00\s/.test(value), {
+      message: "Password cannot contain '00 '",
+    }),
   confirmPassword: z.string()
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match",
@@ -34,7 +41,7 @@ const Register = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -47,10 +54,10 @@ const Register = () => {
 
   const onSubmit = async (data: FormData) => {
     setIsLoading(true);
-    
+
     try {
       const { error, data: userData } = await signUp(data.email, data.password, data.fullName);
-      
+
       if (error) {
         console.error("Registration error:", error);
         toast({
@@ -89,7 +96,7 @@ const Register = () => {
             <h1 className="text-3xl font-bold">Create Account</h1>
             <p className="text-muted-foreground mt-2">Join the AYUSH Herbal Garden community</p>
           </div>
-          
+
           <Card>
             <CardHeader>
               <CardTitle>Sign Up</CardTitle>
@@ -113,7 +120,7 @@ const Register = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="email"
@@ -127,7 +134,7 @@ const Register = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="password"
@@ -136,10 +143,10 @@ const Register = () => {
                         <FormLabel>Password</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Input 
-                              placeholder="••••••••" 
-                              type={showPassword ? "text" : "password"} 
-                              {...field} 
+                            <Input
+                              placeholder="••••••••"
+                              type={showPassword ? "text" : "password"}
+                              {...field}
                             />
                             <Button
                               type="button"
@@ -163,7 +170,7 @@ const Register = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="confirmPassword"
@@ -172,10 +179,10 @@ const Register = () => {
                         <FormLabel>Confirm Password</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Input 
-                              placeholder="••••••••" 
-                              type={showConfirmPassword ? "text" : "password"} 
-                              {...field} 
+                            <Input
+                              placeholder="••••••••"
+                              type={showConfirmPassword ? "text" : "password"}
+                              {...field}
                             />
                             <Button
                               type="button"
@@ -199,7 +206,7 @@ const Register = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? "Creating account..." : "Create Account"}
                   </Button>
