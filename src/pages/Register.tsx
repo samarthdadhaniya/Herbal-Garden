@@ -25,6 +25,15 @@ const formSchema = z.object({
     })
     .refine(value => !/\b00\s/.test(value), {
       message: "Password cannot contain '00 '",
+    })
+    .refine(value => /[A-Z]/.test(value), {
+      message: "Password must contain at least one uppercase letter",
+    })
+    .refine(value => /[!@#$%^&*(),.?":{}|<>]/.test(value), {
+      message: "Password must contain at least one special symbol",
+    })
+    .refine(value => /\d/.test(value), {
+      message: "Password must contain at least one number",
     }),
   confirmPassword: z.string()
 }).refine((data) => data.password === data.confirmPassword, {
